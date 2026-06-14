@@ -1,0 +1,24 @@
+name: Rain Alert
+
+on:
+  schedule:
+    # 北京时间 6:30、8:30、12:30、17:30 → UTC 减 8 小时
+    - cron: "30 22,0,4,9 * * *"
+  workflow_dispatch:
+
+jobs:
+  check-rain:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Check weather and notify
+        env:
+          NOTIFY_METHOD: bark
+          BARK_KEY: ${{ secrets.BARK_KEY }}
+        run: python check_rain.py
