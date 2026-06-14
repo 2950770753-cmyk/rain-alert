@@ -8,7 +8,7 @@ on:
     # 18:20 → 10:20 UTC
     - cron: "20 0,10 * * *"
     - cron: "50 5 * * *"
- workflow_dispatch:
+  workflow_dispatch:
     inputs:
       test_mode:
         description: '发送测试通知（跳过天气检查）'
