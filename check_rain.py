@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-#!/usr/bin/env python3
 """
 Rain Alert — 检查未来几小时是否下雨，通过 Bark / Pushover 推送到 iPhone。
 
@@ -8,6 +7,8 @@ Rain Alert — 检查未来几小时是否下雨，通过 Bark / Pushover 推送
 
 依赖：无需第三方库，仅用 Python 标准库
 运行：python3 check_rain.py
+
+测试推送：python3 check_rain.py --test
 """
 
 import json
@@ -15,6 +16,7 @@ import os
 import sys
 import urllib.parse
 import urllib.request
+from datetime import datetime, timezone
 
 # ── 基本配置（根据你的情况修改）──────────────────────
 LAT = 39.9516          # 纬度
@@ -55,8 +57,6 @@ def get_forecast():
 
 def will_rain(data):
     """判断未来 FORECAST_HOURS 小时内是否可能下雨。"""
-    from datetime import datetime, timezone
-
     times = data["hourly"]["time"]
     probs = data["hourly"]["precipitation_probability"]
     precips = data["hourly"]["precipitation"]
@@ -90,8 +90,6 @@ def send_via_bark(message):
 
     title = "🌂 带伞提醒"
     url = f"https://api.day.app/{BARK_KEY}/{urllib.parse.quote(title)}/{urllib.parse.quote(message)}"
-    # Bark 支持更多参数：?sound=california&icon=https://xxx&group=weather
-    # 添加 isArchive=1 让通知保留在历史记录，level=timeSensitive 确保不被折叠
     url += "?isArchive=1&level=timeSensitive"
 
     req = urllib.request.Request(url)
@@ -131,6 +129,16 @@ def send_notification(message):
 
 # ── 主流程 ────────────────────────────────────────────
 
+def send_test_notification():
+    """发送一条测试通知，验证推送通道是否正常。"""
+    msg = "🔔 带伞提醒 · 测试通知\n推送系统正常工作 ✅\n"
+    msg += f"测试时间: {datetime.now().strftime('%Y-%m-%d %H:%M')}\n"
+    msg += "未来下雨时将自动收到带伞提醒 🌂"
+    print(f"☔ 发送测试通知...")
+    send_notification(msg)
+    print("✅ 已推送，请查看手机")
+
+
 def main():
     print(f"🌤 查询天气预报（方式: {NOTIFY_METHOD}）...")
     try:
@@ -150,4 +158,18 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    if len(sys.argv) > 1 and sys.argv[1] == "--test":
+        send_test_notification()
+    else:
+        main()
+# 测试模式：通过环境变量 TEST_MODE=true 触发（用于 GitHub Actions 手动运行）
+TEST_MODE = os.environ.get("TEST_MODE", "").lower() == "true"
+
+# Bark 配置：从 Bark App 里复制设备 key
+if __name__ == "__main__":
+    if len(sys.argv) > 1 and sys.argv[1] == "--test":
+        send_test_notification()
+    elif TEST_MODE:
+        send_test_notification()
+    else:
+        main()
