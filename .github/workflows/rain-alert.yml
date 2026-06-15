@@ -29,6 +29,6 @@ jobs:
       - name: Check weather and notify
         env:
           NOTIFY_METHOD: bark
-          BARK_KEY: \${{ secrets.BARK_KEY }}
-          TEST_MODE: \${{ inputs.test_mode && 'true' || 'false' }}
+          BARK_KEY: ${{ secrets.BARK_KEY }}
+          TEST_MODE: ${{ inputs.test_mode && 'true' || 'false' }}
         run: python check_rain.py
